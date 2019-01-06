@@ -69,24 +69,8 @@ const xhr = ({ method = 'get', url, params = null }) => {
       }).then(res => {
         if (res.c === RES_OK) {
           resolve(res.d)
-        } else if (res.c === 40004) {
-          // Modal.info({
-          //   title: '消息',
-          //   content: '用户未登录',
-          //   okText: '我知道了',
-          //   onOk() {
-          //     router.push({ path: '/login' })
-          //   }
-          // })
-          // router.push({ path: '/login' })
         } else {
           reject(res)
-          if (url !== '/api/family/attr/by/year') {
-            Toast({
-              message: res.m || res.e,
-              position: 'top'
-            })
-          }
         }
       }).catch(e => {
         Toast({

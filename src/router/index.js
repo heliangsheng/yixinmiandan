@@ -7,13 +7,17 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path: '/',
+      path: '/index',
       name: 'index',
       component: _import('index')
     }, {
       path: '/login',
       name: 'login',
       component: _import('login')
+    }, {
+      path: '/adminIndex',
+      name: 'adminIndex',
+      component: _import('adminIndex')
     }
   ]
 })

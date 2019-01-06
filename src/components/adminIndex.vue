@@ -2,7 +2,7 @@
   <div class="content">
     <mt-tabbar v-model="selected" :fixed="true">
       <mt-tab-item id="1">
-        <span class="tabbar"><span class="iconfont icon-chongzhi"></span>充值</span>
+        <span class="tabbar" @click="showDropdown"><span class="iconfont icon-yonghuguanli"></span>用户中心</span>
       </mt-tab-item>
       <mt-tab-item id="2">
         <span class="tabaward">奖</span>
@@ -91,6 +91,13 @@
         </ul>
       </div>
     </mt-popup>
+    <div v-if="showDropdownFlag" class="menuDrop">
+        <ul>
+            <li><button>充值记录</button></li>
+            <li><button>注册用户</button></li>
+            <li><button>用户列表</button></li>
+        </ul>
+    </div>
   </div>
 </template>
 
@@ -102,6 +109,7 @@ export default {
     return {
       chargeMoney: '',
       selected: '2',
+      showDropdownFlag: false,
       showChargeRecordFlag: false,
       recordData: [
         {
@@ -128,6 +136,9 @@ export default {
     }
   },
   methods: {
+    showDropdown() {
+      this.showDropdownFlag = !this.showDropdownFlag
+    },
     charge() {
       let params = {
         money: this.chargeMoney
@@ -168,6 +179,28 @@ export default {
 <style>
   #app .mint-tab-item {
     padding: 0;
+  }
+  .menuDrop{
+      position: fixed;
+      background-color: #fff;
+      width: 33%;
+      left: 0;
+      bottom: 48px;
+      border: 1px solid #ccc;
+      border-bottom: none;
+  }
+  .menuDrop ul li{
+    font-size: 16px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+  }
+  .menuDrop ul li button{
+    font-size: 16px;
+    height: 40px;
+    line-height: 40px;
+    background-color: transparent;
   }
   .recordPopup{
     width: 100%;

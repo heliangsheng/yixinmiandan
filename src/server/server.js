@@ -22,10 +22,36 @@ class SystemService {
    * @returns
    * @memberof SystemService
    */
-  getCode() {
+  getCode(params) {
     return xhr({
-      method: 'get',
-      url: '/api/xt/logout'
+      method: 'post',
+      url: '/api/xt/logout',
+      params
+    })
+  }
+  /**
+   * 充值
+   * @returns
+   * @memberof SystemService
+   */
+  chargeMoney(params) {
+    return xhr({
+      method: 'post',
+      url: '/api/xt/logout',
+      params
+    })
+  }
+
+  /**
+   * 查询充值记录
+   * @returns
+   * @memberof SystemService
+   */
+  searchRecord(params) {
+    return xhr({
+      method: 'post',
+      url: '/api/xt/logout',
+      params
     })
   }
 }
