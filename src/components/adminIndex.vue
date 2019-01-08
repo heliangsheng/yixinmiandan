@@ -26,7 +26,28 @@
             <span class="awardMoney">10000</span>
           </div>
           <div class="awardBottom">
+            <mt-navbar v-model="awardSelected">
+              <mt-tab-item id="1"><span class="awardTabTitle">当前奖金池</span></mt-tab-item>
+              <mt-tab-item id="2"><span class="awardTabTitle">奖金领取情况</span></mt-tab-item>
+            </mt-navbar>
 
+            <!-- tab-container -->
+            <mt-tab-container v-model="awardSelected">
+              <mt-tab-container-item id="1">
+                <div class="page-infinite-wrapper" ref="wrapper" style="height: 100%;overflow:scroll">
+                  <ul class="page-infinite-list" v-infinite-scroll="award1LoadMore" infinite-scroll-disabled="award1Loading" infinite-scroll-distance="10">
+                    <li v-for="n in list" :key="n" class="page-infinite-listitem">{{ n }}</li>
+                  </ul>
+                  <p v-show="award1Loading" class="page-infinite-loading">
+                    <mt-spinner type="fading-circle"></mt-spinner>
+                    <span>加载中...</span>
+                  </p>
+                </div>
+              </mt-tab-container-item>
+              <mt-tab-container-item id="2">
+                <mt-cell v-for="n in 4" :key="n" :title="'content ' + n" />
+              </mt-tab-container-item>
+            </mt-tab-container>
           </div>
         </div>
       </mt-tab-container-item>
@@ -184,6 +205,9 @@ export default {
       firstCharge: '',
       isAdmin: false,
       isAdminText: '否',
+      awardSelected: '1',
+      award1Loading: false,
+      list: [1,2,3,4,5,6,7,8,9,10],
       recordData: [
         {
           data: '2018-01-12 15:34',
@@ -260,6 +284,16 @@ export default {
     // 保存用户信息
     saveUserInfo() {
       console.log('user')
+    },
+    award1LoadMore() {
+      this.loading = true
+      setTimeout(() => {
+        let last = this.list[this.list.length - 1]
+        for (let i = 1; i <= 10; i++) {
+          this.list.push(last + i)
+        }
+        this.loading = false
+      }, 2500);
     }
   }
 }
@@ -449,10 +483,13 @@ export default {
   }
   .award .awardBottom{
     height: calc(100% - 180px);
-    background-color: #efefef;
-    padding: 10px;
+    background-color: #fff;
     text-align: center;
   }
+  .award .awardBottom .mint-tab-container{
+    height: calc(100% - 32px);
+  }
+  .award .awardBottom .mint-tab-container
   .self.containerBox {
     padding-top: 0;
   }
@@ -561,6 +598,19 @@ export default {
     height: 48px;
     line-height: 46px;
     border-radius: 50%;
+  }
+  .awardTabTitle{
+    font-size: 16px;
+    line-height: 32px;
+  }
+  .page-infinite-loading{
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+  }
+  .page-infinite-loading > span {
+    display: inline-block;
+    vertical-align: middle;
   }
 </style>
 
