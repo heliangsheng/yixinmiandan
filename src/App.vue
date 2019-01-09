@@ -8,7 +8,7 @@
 export default {
   name: 'App',
   created() {
-    this.$router.push('/adminIndex')
+    this.$router.push('/index')
   }
 }
 </script>
