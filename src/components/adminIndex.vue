@@ -1,17 +1,15 @@
 <template>
   <div class="content">
     <mt-tabbar v-model="selected" :fixed="true">
-      <mt-tab-item id="1">
-        <span class="tabbar" @click="showDropdown"><span class="iconfont icon-yonghuguanli"></span>用户中心</span>
-      </mt-tab-item>
-      <mt-tab-item id="2">
+      <span class="tabbar" style="width:33%;" @click="showDropdownFlag = !showDropdownFlag"><span class="iconfont icon-yonghuguanli"></span>用户中心</span>
+      <mt-tab-item id="2" @click.native="hideDropdown">
         <span class="tabaward">奖</span>
       </mt-tab-item>
-      <mt-tab-item id="3">
+      <mt-tab-item id="3" @click.native="hideDropdown">
         <span class="tabbar"><span class="iconfont icon-gerenzhongxin"></span>个人中心</span>
       </mt-tab-item>
     </mt-tabbar>
-    <mt-tab-container v-model="selected" class="container">
+    <mt-tab-container v-model="selected" class="container" @click.native="hideDropdown">
       <mt-tab-container-item id="1">
         <div class="charge containerBox">
           <mt-field label="充值金额:" placeholder="请输入充值金额" type="number" v-model="chargeMoney"></mt-field>
@@ -23,16 +21,33 @@
       <mt-tab-container-item id="2">
         <div class="award containerBox">
           <div class="awardTop">
+            <h3 class="awardTitle">伊馨免单了</h3>
             <span class="awardName">当前奖池金额:</span>
             <span class="awardMoney">10000</span>
           </div>
-          <div class="awardCenter">
-            <span class="awardName">您的当前排名:</span>
-            <span class="awardMoney">15</span>
-          </div>
           <div class="awardBottom">
-            <span class="awardName">此次累计充值金额:</span>
-            <span class="awardMoney">2000</span>
+            <mt-navbar v-model="awardSelected">
+              <mt-tab-item id="1"><span class="awardTabTitle">当前奖金池</span></mt-tab-item>
+              <mt-tab-item id="2"><span class="awardTabTitle">奖金领取情况</span></mt-tab-item>
+            </mt-navbar>
+
+            <!-- tab-container -->
+            <mt-tab-container v-model="awardSelected">
+              <mt-tab-container-item id="1">
+                <div class="page-infinite-wrapper" ref="wrapper" style="height: 100%;overflow:scroll">
+                  <ul class="page-infinite-list" v-infinite-scroll="award1LoadMore" infinite-scroll-disabled="award1Loading" infinite-scroll-distance="10">
+                    <li v-for="n in list" :key="n" class="page-infinite-listitem">{{ n }}</li>
+                  </ul>
+                  <p v-show="award1Loading" class="page-infinite-loading">
+                    <mt-spinner type="fading-circle"></mt-spinner>
+                    <span>加载中...</span>
+                  </p>
+                </div>
+              </mt-tab-container-item>
+              <mt-tab-container-item id="2">
+                <mt-cell v-for="n in 4" :key="n" :title="'content ' + n" />
+              </mt-tab-container-item>
+            </mt-tab-container>
           </div>
         </div>
       </mt-tab-container-item>
@@ -59,6 +74,41 @@
         </div>
       </mt-tab-container-item>
     </mt-tab-container>
+<!--  用户列表 -->  
+    <mt-popup
+      class="recordPopup"
+      v-model="showUserListFlag"
+      position="right">
+      <div class="topBack">
+        <button @click="showUserListFlag = false">&lt; 返回</button>
+        <h3>用户列表</h3>
+      </div>
+      <div class="recordList">
+        <div class="mint-searchbar">
+          <div class="mint-searchbar-inner">
+            <i class="mintui mintui-search"></i> 
+            <input type="search" v-model="userInfoSearch" placeholder="搜索" class="mint-searchbar-core">
+          </div>
+        </div>
+        <ul class="recordUl">
+          <li class="listHeader">
+            <span class="userName">用户名</span>
+            <span class="userOpt">操作</span>
+          </li>
+          <li v-if="recordData.length > 0"  v-for="(item, index) in recordData" :key="index">
+            <span class="userName">{{item.name}}</span>
+            <span class="userOpt">
+              <mt-button type="primary">充值</mt-button>
+              <mt-button type="primary">修改</mt-button>
+            </span>
+          </li>
+          <li v-if="recordData.length === 0">
+            <span class="noRecord">暂无充值记录</span>
+          </li>
+        </ul>
+      </div>
+    </mt-popup>
+<!--  充值记录 -->
     <mt-popup
       class="recordPopup"
       v-model="showChargeRecordFlag"
@@ -91,11 +141,44 @@
         </ul>
       </div>
     </mt-popup>
+<!-- 注册用户 -->
+    <mt-popup
+      class="recordPopup"
+      v-model="showUserInfoFlag"
+      position="right">
+      <div class="topBack">
+        <button @click="showUserInfoFlag = false">&lt; 返回</button>
+        <h3>{{userTitle}}</h3>
+      </div>
+      <div class="recordList">
+        <mt-field label="用户名" placeholder="请输入用户名" v-model="username"></mt-field>
+        <mt-field label="手机号" placeholder="请输入手机号" type="tel" v-model="phone"></mt-field>
+        <mt-field label="推荐人" placeholder="请输入推荐人手机号" type="tel" v-model="tel"></mt-field>
+        <mt-field label="地址" placeholder="请输入地址" v-model="address"></mt-field>
+        <mt-field label="首充金额" placeholder="请输入首充金额" type="number" v-model="firstCharge"></mt-field>
+        <a class="mint-cell mint-field">
+          <div class="mint-cell-left"></div>
+          <div class="mint-cell-wrapper">
+            <div class="mint-cell-title">
+              <span class="mint-cell-text">是否管理员</span>
+            </div>
+            <div class="mint-cell-value">
+              <mt-switch v-model="isAdmin" @change="changeIsAdmin">{{isAdminText}}</mt-switch>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="saveUserInfo" style="padding:30px;">
+        <mt-button type="primary" style="width:100%;" @click.native="saveUserInfo">保存</mt-button>
+      </div>
+
+    </mt-popup>
+    <!-- 下拉菜单 -->
     <div v-if="showDropdownFlag" class="menuDrop">
         <ul>
-            <li><button>充值记录</button></li>
-            <li><button>注册用户</button></li>
-            <li><button>用户列表</button></li>
+            <li><button @click="showChargeRecordFlag = true">充值记录</button></li>
+            <li><button @click="showUserInfoFlag = true">注册用户</button></li>
+            <li><button @click="showUserListFlag = true">用户列表</button></li>
         </ul>
     </div>
   </div>
@@ -109,8 +192,22 @@ export default {
     return {
       chargeMoney: '',
       selected: '2',
-      showDropdownFlag: false,
-      showChargeRecordFlag: false,
+      showDropdownFlag: false,      // 显示下拉菜单
+      showChargeRecordFlag: false,  // 显示充值记录
+      showUserListFlag: false,   // 显示用户列表
+      showUserInfoFlag: false,     // 注册用户页面
+      userInfoSearch: '',         // 用户列表搜索,
+      userTitle: '注册用户',       // 注册用户或修改用户信息的title
+      username: '',
+      phone: '',
+      tel: '',
+      address: '',
+      firstCharge: '',
+      isAdmin: false,
+      isAdminText: '否',
+      awardSelected: '1',
+      award1Loading: false,
+      list: [1,2,3,4,5,6,7,8,9,10],
       recordData: [
         {
           data: '2018-01-12 15:34',
@@ -137,7 +234,18 @@ export default {
   },
   methods: {
     showDropdown() {
-      this.showDropdownFlag = !this.showDropdownFlag
+      this.showDropdownFlag = true
+    },
+    hideDropdown() {
+      this.showDropdownFlag = false
+    },
+    // 切换是否是管理员
+    changeIsAdmin(val) {
+      if (!val) {
+        this.isAdminText = '是'
+      } else {
+        this.isAdminText = '否'
+      }
     },
     charge() {
       let params = {
@@ -155,6 +263,7 @@ export default {
         })
       })
     },
+    // 切换显示充值记录
     switchChargeRecord() {
       this.showChargeRecordFlag = !this.showChargeRecordFlag
     },
@@ -171,6 +280,20 @@ export default {
           position: 'top'
         })
       })
+    },
+    // 保存用户信息
+    saveUserInfo() {
+      console.log('user')
+    },
+    award1LoadMore() {
+      this.loading = true
+      setTimeout(() => {
+        let last = this.list[this.list.length - 1]
+        for (let i = 1; i <= 10; i++) {
+          this.list.push(last + i)
+        }
+        this.loading = false
+      }, 2500);
     }
   }
 }
@@ -247,6 +370,7 @@ export default {
   }
   .recordList .recordUl li span{
     float: left;
+    min-height: 40px;
   }
   .recordList .recordUl li .data{
     width: 35%;
@@ -256,6 +380,19 @@ export default {
   }
   .recordList .recordUl li .result{
     width: 35%;
+  }
+  .recordList .recordUl li .userName{
+    width: 50%;
+    text-align: center;
+  }
+  .recordList .recordUl li .userOpt{
+    width: 50%;
+    text-align: center;
+  }
+  .userOpt .mint-button--normal {
+    display: inline-block;
+    padding: 2px 10px;
+    height: 28px;
   }
   .recordList .recordUl li .noRecord {
     display: inline-block;
@@ -290,6 +427,7 @@ export default {
     background-image: url('/static/img/chargebg.jpg');
   }
   .award {
+    padding: 0;
     background-image: url('/static/img/awardbg.jpg');
   }
   .self .topInfo{
@@ -315,6 +453,8 @@ export default {
     padding-top: 50px;
   }
   .award .awardTop {
+    height: 180px;
+    padding-top: 20px;
     text-align: center;
   }
   .award .awardTop span{
@@ -325,18 +465,31 @@ export default {
     line-height: 20px;
     color: #fff;
   }
+  .award .awardTop .awardTitle{
+    padding-left: 15px;
+    font-size: 28px;
+    color: #fff;
+    line-height: 60px;
+    letter-spacing: 8px;
+    text-align: center;
+    height: 60px;
+  }
+  .award .awardTop span.awardName{
+    margin-top: 10px;
+  }
   .award .awardTop span.awardMoney{
     font-weight: 700;
+    margin-top: 10px;
   }
-  .award .awardCenter, .award .awardBottom{
-    padding: 15px;
+  .award .awardBottom{
+    height: calc(100% - 180px);
+    background-color: #fff;
     text-align: center;
   }
-  .award .awardCenter span, .award .awardBottom span{
-    font-size: 16px;
-    line-height: 16px;
-    color: #fff;
+  .award .awardBottom .mint-tab-container{
+    height: calc(100% - 32px);
   }
+  .award .awardBottom .mint-tab-container
   .self.containerBox {
     padding-top: 0;
   }
@@ -445,6 +598,19 @@ export default {
     height: 48px;
     line-height: 46px;
     border-radius: 50%;
+  }
+  .awardTabTitle{
+    font-size: 16px;
+    line-height: 32px;
+  }
+  .page-infinite-loading{
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+  }
+  .page-infinite-loading > span {
+    display: inline-block;
+    vertical-align: middle;
   }
 </style>
 
